@@ -6,11 +6,11 @@
 #include <time.h>
 
 
-const char ROW_TOP[] = "          %c %c %c\n";
-const char ROW_ODD[] = "        %d %c|%c|%c \n";
-const char ROW_EVN[] = "         --|-|--\n";
+static const char ROW_TOP[] = "          %c %c %c\n";
+static const char ROW_ODD[] = "        %d %c|%c|%c \n";
+static const char ROW_EVN[] = "         --|-|--\n";
 
-uint8_t const LINE_PATTERNS[][3] = {
+static uint8_t const LINE_PATTERNS[][3] = {
         {0, 1, 2},
         {3, 4, 5},
         {6, 7, 8},
@@ -21,32 +21,39 @@ uint8_t const LINE_PATTERNS[][3] = {
         {2, 4, 6},
 };
 
+static uint8_t const N_PATTERNS = sizeof(LINE_PATTERNS)
+				/ sizeof(LINE_PATTERNS[0]);
+
 struct Game {
         char grid[9];
         bool over;
 };
 
-void render(char* grid) {
+void render(char const *grid)
+{
         printf("\n");
         printf(ROW_TOP, 'a', 'b', 'c');
-        for (int i = 0; i < 3; ++i) {
+        for (uint8_t i = 0; i < 3; ++i) {
                 printf(ROW_ODD, i + 1,
                                 grid[3*i],
                                 grid[3*i + 1],
                                 grid[3*i + 2]);
-                if (i != 2) printf(ROW_EVN);
+                if (i != 2)
+			printf(ROW_EVN);
         }
         printf("\n");
 }
 
-void initialize(struct Game* game) {
-        for (int i = 0; i < 9; ++i) {
+void initialize(struct Game* restrict game)
+{
+        for (uint8_t i = 0; i < 9; ++i) {
                 game->grid[i] = ' ';
         }
         game->over = false;
 }
 
-void makeUserTurn(struct Game* game) {
+void makeUserTurn(struct Game* game)
+{
         char line, row;
         uint8_t tileIndex;
         bool valid = false;
@@ -68,8 +75,9 @@ void makeUserTurn(struct Game* game) {
         } while (!valid);
 }
 
-bool checkForFullLine(struct Game* game, char tag) {
-        for (int i = 0; i < sizeof(LINE_PATTERNS)/sizeof(LINE_PATTERNS[0]); ++i) {
+bool checkForFullLine(struct Game *const game, char const tag)
+{
+        for (uint8_t i = 0; i < N_PATTERNS; ++i){
                 if (game->grid[LINE_PATTERNS[i][0]] == tag &&
                     game->grid[LINE_PATTERNS[i][1]] == tag &&
                     game->grid[LINE_PATTERNS[i][2]] == tag) {
@@ -82,16 +90,19 @@ bool checkForFullLine(struct Game* game, char tag) {
 }
 
 
-bool checkIfGridFull(struct Game* game) {
+bool checkIfGridFull(struct Game* game)
+{
         for (int i = 0; i < 9; ++i) {
                 if (game->grid[i] == ' ') return false;
         }
-        puts("Draw");
         game->over = true;
+	render(game->grid);
+        puts("Draw");
         return true;
 }
 
-bool completeLine(struct Game* game, const char tag, const int8_t iteration) {
+bool completeLine(struct Game* game, const char tag, const int8_t iteration)
+{
         if (game->grid[LINE_PATTERNS[iteration][0]] == tag &&
             game->grid[LINE_PATTERNS[iteration][1]] == tag &&
             game->grid[LINE_PATTERNS[iteration][2]] == ' ') {
@@ -113,9 +124,10 @@ bool completeLine(struct Game* game, const char tag, const int8_t iteration) {
         return false;
 }
 
-void makeComputerTurn(struct Game* game) {
+void makeComputerTurn(struct Game* game)
+{
         int8_t moveValueMap[9] = { 0 };
-        for (int8_t i = 0; i < sizeof(LINE_PATTERNS)/sizeof(LINE_PATTERNS[0]); ++i) {
+        for (int8_t i = 0; i < N_PATTERNS; ++i) {
 
                 // Secure win
                 if (completeLine(game, 'O', i)) return;
@@ -147,7 +159,7 @@ void makeComputerTurn(struct Game* game) {
                         ++moveValueMap[LINE_PATTERNS[i][1]];
                 }
         }
-        for (int i = 0; i < 9; ++i) {
+        for (uint8_t i = 0; i < 9; ++i) {
                 if (game->grid[i] != ' ') {
                         moveValueMap[i] -= 5;
                 }
@@ -155,19 +167,7 @@ void makeComputerTurn(struct Game* game) {
         int8_t bestMove = -1;
         time_t t;
         srand((unsigned) time(&t));
-        int iterations = rand() % 32;
-#if 0
-        printf("moveMap: (%d %d %d) (%d %d %d) (%d %d %d)",
-                moveValueMap[0],
-                moveValueMap[1],
-                moveValueMap[2],
-                moveValueMap[3],
-                moveValueMap[4],
-                moveValueMap[5],
-                moveValueMap[6],
-                moveValueMap[7],
-                moveValueMap[8]);
-#endif
+        uint8_t iterations = rand() % 32;
         for (int8_t i = 0; i < iterations; ++i) {
                 if (moveValueMap[i % 9] >= bestMove &&
                     game->grid[i % 9] == ' ') {
@@ -175,14 +175,15 @@ void makeComputerTurn(struct Game* game) {
                 }
         }
         if (bestMove == -1) {
-            for (int i = 0; i < 9; ++i) {
+            for (uint8_t i = 0; i < 9; ++i) {
                 if (game->grid[i] == ' ') bestMove = i;
             }
         }
         game->grid[bestMove] = 'O';
 }
 
-int main(void) {
+int main(void)
+{
         struct Game game;
         initialize(&game);
         while(!game.over) {
@@ -199,3 +200,4 @@ int main(void) {
         puts("Game Over");
         return EXIT_SUCCESS;
 }
+
