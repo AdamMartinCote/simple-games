@@ -22,14 +22,15 @@ static uint8_t const LINE_PATTERNS[][3] = {
 };
 
 static uint8_t const N_PATTERNS = sizeof(LINE_PATTERNS)
-				/ sizeof(LINE_PATTERNS[0]);
+                                / sizeof(LINE_PATTERNS[0]);
 
 struct Game {
         char grid[9];
         bool over;
 };
 
-void render(char const *grid)
+static void
+render(char const *grid)
 {
         printf("\n");
         printf(ROW_TOP, 'a', 'b', 'c');
@@ -39,12 +40,13 @@ void render(char const *grid)
                                 grid[3*i + 1],
                                 grid[3*i + 2]);
                 if (i != 2)
-			printf(ROW_EVN);
+                        printf(ROW_EVN);
         }
         printf("\n");
 }
 
-void initialize(struct Game* restrict game)
+static void
+initialize(struct Game* restrict game)
 {
         for (uint8_t i = 0; i < 9; ++i) {
                 game->grid[i] = ' ';
@@ -52,7 +54,8 @@ void initialize(struct Game* restrict game)
         game->over = false;
 }
 
-void makeUserTurn(struct Game* game)
+static void
+makeUserTurn(struct Game* game)
 {
         char line, row;
         uint8_t tileIndex;
@@ -75,7 +78,8 @@ void makeUserTurn(struct Game* game)
         } while (!valid);
 }
 
-bool checkForFullLine(struct Game *const game, char const tag)
+static bool
+checkForFullLine(struct Game *const game, char const tag)
 {
         for (uint8_t i = 0; i < N_PATTERNS; ++i){
                 if (game->grid[LINE_PATTERNS[i][0]] == tag &&
@@ -90,18 +94,20 @@ bool checkForFullLine(struct Game *const game, char const tag)
 }
 
 
-bool checkIfGridFull(struct Game* game)
+statict bool
+checkIfGridFull(struct Game* game)
 {
         for (int i = 0; i < 9; ++i) {
                 if (game->grid[i] == ' ') return false;
         }
         game->over = true;
-	render(game->grid);
+        render(game->grid);
         puts("Draw");
         return true;
 }
 
-bool completeLine(struct Game* game, const char tag, const int8_t iteration)
+static bool
+completeLine(struct Game* game, const char tag, const int8_t iteration)
 {
         if (game->grid[LINE_PATTERNS[iteration][0]] == tag &&
             game->grid[LINE_PATTERNS[iteration][1]] == tag &&
@@ -124,7 +130,8 @@ bool completeLine(struct Game* game, const char tag, const int8_t iteration)
         return false;
 }
 
-void makeComputerTurn(struct Game* game)
+static void
+makeComputerTurn(struct Game* game)
 {
         int8_t moveValueMap[9] = { 0 };
         for (int8_t i = 0; i < N_PATTERNS; ++i) {
@@ -190,11 +197,15 @@ int main(void)
                 render(game.grid);
                 makeUserTurn(&game);
                 checkForFullLine(&game, 'X');
-                if (game.over) break;
+                if (game.over)
+                        break;
+
                 checkIfGridFull(&game);
                 makeComputerTurn(&game);
                 checkForFullLine(&game, 'O');
-                if (game.over) break;
+                if (game.over)
+                        break;
+
                 checkIfGridFull(&game);
         }
         puts("Game Over");
